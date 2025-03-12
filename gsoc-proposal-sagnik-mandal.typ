@@ -11,10 +11,12 @@
   listing-index: (enabled: false),
   table-of-contents: none,
   date: datetime(year: 2025, month: 01, day: 25),
-  version: "v1.0",
+  version: "v2.0",
 )
 
 #outline()
+
+#pagebreak()
 
 = Project Info
 *Project title:* Optimizing a performance testing workflow by reusing minified R package versions between CI runs
@@ -57,22 +59,50 @@ Other information about me can be found on my #link("https://iitbhuacin-my.share
 *Contact to Verify:* #link("https://www.iitbhu.ac.in/dept/mst/people/cupadhyaymst")[Dr. Chandan Upadhyay] (_email: #link("mailto:cupadhyay.mst@iitbhu.ac.in")[#"cupadhyay.mst@iitbhu.ac.in"]_)
 
 = Schedule Conflicts
-I have my End Semester Examinations from Apr 24 – May 09, 2025, and will most probably be travelling back home within a week after that. This will clash with the first week of the Community Bonding period, but I will be able to work on the project during the rest of the summer without any interruptions. I have already setup my build environment and through the tests I have also tackled parts of the project.
+I have my Summer Break from May 10 - July 10, 2025, so for majority of the project duration, I will be able to dedicate 35 hours a week to the project. I have already setup my build environment and through the tests I have also tackled parts of the project.
 
-My next semester starts on July 11, 2025, and considering a 175 hour coding period, I will ensure the project is completed before that.
+The first and the last week of the project will be a bit tight for me, as I will be travelling back home and then back to college, but I will try to make up for the lost time by working extra hours during the rest of the project duration.
 
 = Mentors
 *Evaluating Mentor:* Anirban Chetia (anirban166) (_email: #link("mailto:ac4743@nau.edu")[#"ac4743@nau.edu"]_)
 
 *Co-Mentor(s)*: Toby Dylan Hocking (tdhock) (_email: #link("mailto:toby.hocking@r-project.org")[#"toby.hocking@r-project.org"]_)
 
-*Contact with Mentors:* I have been in touch with both Anirban and Toby over email.
+*Contact with Mentors:* I have been in touch with both Anirban and Toby over Email and Github.
+
+#pagebreak()
 
 = Coding Plan and Methods
 
-TODO
+== Project Scope
+The project will involve these three repositories:
+1. #link("https://github.com/Rdatatable/data.table")[data.table]
+   - #link("https://github.com/criticic/data.table-test-work-workflow/blob/master/.ci/atime/tests.R")[`.ci/atime/tests.R`] - This file contains benchmark tests for various data.table functions, including performance regression tests across different versions. Currently there are about 15 test cases, and for each test case, the workflow installs multiple versions of data.table before running the tests. In total, the workflow builds and *installs approximately 28 different versions of data.table* for each run.
+   - #link("https://github.com/Rdatatable/data.table/blob/master/.github/workflows/performance-tests.yml")[`.github/workflows/performance-tests.yml`] - This workflow triggers the `Autocomment-atime-results` action to run performance tests on pull requests.
+
+2. #link("https://github.com/Anirban166/Autocomment-atime-results")[Autocomment-atime-results]
+    - #link("https://github.com/Anirban166/Autocomment-atime-results/blob/main/action.yml")[`action.yml`] - This is the main file that defines the GitHub Action. It sets up the R environment, installs required packages, and runs the tests defined in .ci/atime/tests.R using the atime package. After running tests, it logs execution time and comments on the PR with performance results.
+
+3. #link("https://github.com/tdhock/atime")[atime]
+    - #link("R/versions.R")[`R/versions.R`] - This file contains the actual functions which build and install different versions of the package. The functions include `atime_versions_install` (installs different git versions of a package with modified names), `pkg.edit.default` (modifies package files to enable installation of multiple versions), and `atime_versions_exprs` (creates benchmark expressions with appropriate package references).
+
+== Broad Tasks
+1. *Package Minification*: Identify areas for optimization in the package installation process. Partially implemented in the tests, this script will extract the package tarball, remove unnecessary files and directories, and install the package using `R CMD INSTALL`.
+2. *Updating Atime to use cached packages*: Modify the `atime` package to use the cached packages. This will involve updating the `atime_versions_install` function to check for the presence of the cached package and install it if found.
+3. *Artifact Caching & Retrieval Workflow*: Update the `Autocomment-atime-results` workflow to check for the availability of the cached packages. If found, download and install them directly; if not, rebuild the minified versions and upload them as artifacts for future runs.
+4. *Support for PRs from Forks*: Adapt the workflow to securely handle PRs from forks. This will ensure repository secrets don't get leaked due to malicious actors, as well as allowing us to test all PRs, rather than just those from the maintainers.
+5. *Testing and Documentation*: Test the workflow with different versions of data.table and document the gains in terms of time and resources saved. Also, document the workflow to make it easier for contributors to understand and use.
+
+== Documentation
+
+
+
+#pagebreak()
 
 = Timeline
+
+*Total Hours:* 175 (35 hours/week × 5 weeks)
+*Project Duration:* June 2 - July 14, 2025
 
 // May 8 - June 1
 // Community Bonding Period | GSoC contributors get to know mentors, read documentation, get up to speed to begin working on their projects
@@ -88,11 +118,60 @@ TODO
 // Final week: GSoC contributors submit their final work product and their final mentor evaluation (standard coding period)
 
 
-TODO
+== Pre-GSoC Period ( \$CURRENT_DATE - May 8, 2025 )
+
+- Repository setup with mirrored repositories for the project:
+  - `data.table` with historical branches
+  - `Autocomment-atime-results` fork
+  - Local `atime` development environment
+- Initial minification script prototype [Mostly done in the easy test]
+- Audit current resource use and CI runtimes [done partially]
+
+== Community Bonding Period ( May 8 - June 1, 2025 )
+
+- Won't be available for the first week of the community bonding period, as I will be travelling back home.
+- Discuss project expectations and goals with mentors, and community members. Finalize the project plan and timeline.
+- Start working on the project to get a headstart.
+
+== Week 1: Core Minification System (June 2-8)
+*Objective:* Implement reliable package minification
+- Finalize file exclusion list through empirical size analysis of 10 historical versions
+- Develop versioned artifact naming convention
+
+== Week 2: Caching Integration (June 9-15)
+*Objective:* Connect atime to cached artifacts
+- Modify `atime_versions_install` to:
+  - Check for cached packages before source build
+  // - Handle version conflicts (SHA-256 verification)
+  - Implement SHA-256 verification for cached packages
+- Implement cache fallback mechanism
+
+== Coding Period Week 3 (June 16 - June 22)
+- TODO: Primary Focus: `Updating Atime to use cached packages` & `Artifact Caching & Retrieval`
+
+== Coding Period Week 4 (June 23 - June 29)
+- TODO: Primary Focus: `Workflow Integration` & `Support for PRs from Forks`
+
+== Coding Period Week 5 (June 30 - July 6)
+- TODO: Primary Focus: `Testing and Documentation`
+
+== Final Week (July 7 - July 14)
+
+
+
+
+#pagebreak()
 
 = Management of Coding Project
 
-TODO
+== Communication Strategy
+- Bi-weekly sync calls with mentors (Google Meet/Zoom etc.) to track progress and discuss blockers.
+- Regular updates will be added on a weekly blog which I will maintain. This will also act as the report for the project.
+
+== Testing
+- Add unit tests for the minification script and the caching workflow.
+- Test the workflow with different versions of data.table to ensure that the cached packages are being used correctly.
+
 
 = Test Submissions
 
